@@ -8,7 +8,8 @@ Build-Depends: debhelper-compat (= 13),
                libusb-1.0-0-dev,
                gobject-introspection,
                libgirepository1.0-dev,
-               gtk-doc-tools,
+               libjson-glib-dev,
+               gi-docgen,
                valac (>= 0.20),
                meson
 Build-Depends-Indep: libglib2.0-doc <!nodoc>
@@ -25,6 +26,7 @@ Depends: libgusb2 (= ${binary:Version}),
          ${misc:Depends},
          gir1.2-gusb-1.0 (= ${binary:Version}),
          libglib2.0-dev (>= 2.44.0),
+         libjson-glib-dev,
          libusb-1.0-0-dev
 Description: GLib wrapper around libusb1 - development files
  GUsb is a GObject wrapper for libusb1 that makes it easy to do
