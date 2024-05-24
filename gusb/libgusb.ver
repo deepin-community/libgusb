@@ -159,3 +159,66 @@ LIBGUSB_0.3.8 {
     g_usb_device_get_string_descriptor_bytes_full;
   local: *;
 } LIBGUSB_0.3.6;
+
+LIBGUSB_0.3.10 {
+  global:
+    g_usb_context_get_hotplug_poll_interval;
+    g_usb_context_set_hotplug_poll_interval;
+  local: *;
+} LIBGUSB_0.3.8;
+
+LIBGUSB_0.4.0 {
+  global:
+    g_usb_bos_descriptor_get_capability;
+    g_usb_bos_descriptor_get_extra;
+    g_usb_bos_descriptor_get_type;
+    g_usb_context_load;
+    g_usb_context_save;
+    g_usb_device_event_get_bytes;
+    g_usb_device_event_get_id;
+    g_usb_device_event_get_status;
+    g_usb_device_event_get_type;
+    g_usb_device_event_set_bytes;
+    g_usb_device_get_bos_descriptor;
+    g_usb_device_get_bos_descriptors;
+    g_usb_device_get_events;
+    g_usb_device_invalidate;
+  local: *;
+} LIBGUSB_0.3.10;
+
+LIBGUSB_0.4.1 {
+  global:
+    g_usb_context_load_with_tag;
+    g_usb_context_save_with_tag;
+    g_usb_device_add_tag;
+  local: *;
+} LIBGUSB_0.4.0;
+
+LIBGUSB_0.4.3 {
+  global:
+    g_usb_device_has_tag;
+  local: *;
+} LIBGUSB_0.4.1;
+
+LIBGUSB_0.4.4 {
+  global:
+    g_usb_device_clear_events;
+    g_usb_device_get_tags;
+    g_usb_device_is_emulated;
+    g_usb_device_remove_tag;
+  local: *;
+} LIBGUSB_0.4.3;
+
+LIBGUSB_0.4.5 {
+  global:
+    g_usb_device_event_get_rc;
+    g_usb_device_get_created;
+  local: *;
+} LIBGUSB_0.4.4;
+
+LIBGUSB_0.4.7 {
+  global:
+    g_usb_device_get_hid_descriptor_default;
+    g_usb_device_get_hid_descriptors;
+  local: *;
+} LIBGUSB_0.4.5;

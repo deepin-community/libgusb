@@ -1,6 +1,6 @@
+usr/bin/gusbcmd
 usr/include/*
 usr/lib/*/lib*.so
 usr/lib/*/pkgconfig/*
 usr/share/gir-*
 usr/share/vala/vapi
-usr/bin/gusbcmd

@@ -3,17 +3,32 @@ Upstream-Name: libgusb
 Source: http://people.freedesktop.org/~hughsient/releases/
 
 Files: *
-Copyright: Copyright (C) 2011 Richard Hughes <richard@hughsie.com>
-    Copyright (C) 2011 Hans de Goede <hdegoede@redhat.com>
+Copyright: 2011 Richard Hughes
+           2011 Hans de Goede <hdegoede@redhat.com>
 License: LGPL-2.1+
 
+Files: contrib/org.freedesktop.GUsb.metainfo.xml
+Copyright: 2022 Richard Hughes
+License: CC0-1.0
+
 Files: tools/*
-Copyright: Copyright (C) 2011 Richard Hughes <richard@hughsie.com>
+Copyright: 2011 Richard Hughes
 License: GPL-2.0+
 
 Files: debian/*
 Copyright: 2012 Michal Čihař <nijel@debian.org>
 License: LGPL-2.1+
+
+License: CC0-1.0
+ To the extent possible under law, the author(s) have dedicated all copyright
+ and related and neighboring rights to this software to the public domain
+ worldwide. This software is distributed without any warranty.
+ .
+ You should have received a copy of the CC0 Public Domain Dedication along with
+ this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+ .
+ On Debian systems, the complete text of the CC0 1.0 Universal license can be
+ found in "/usr/share/common-licenses/CC0-1.0".
 
 License: GPL-2.0+
  This package is free software; you can redistribute it and/or modify

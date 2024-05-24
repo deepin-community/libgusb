@@ -1,7 +1,7 @@
 project('libgusb', 'c',
-  version : '0.3.8',
+  version : '0.4.8',
   license : 'LGPL-2.1+',
-  meson_version : '>=0.46.0',
+  meson_version : '>=0.56.0',
   default_options : ['c_std=c99']
 )
 
@@ -49,6 +49,7 @@ test_args = [
   '-Wno-strict-aliasing',
   '-Wno-suggest-attribute=format',
   '-Wno-unused-parameter',
+  '-Wno-gnu-variable-sized-type-not-at-end',
   '-Wold-style-definition',
   '-Woverride-init',
   '-Wpointer-arith',
@@ -93,6 +94,11 @@ add_project_link_arguments(
   language: 'c'
 )
 
+if get_option('tests')
+  umockdev = dependency('umockdev-1.0', version: '>= 0.17.7', disabler: true, required: get_option('umockdev'))
+else
+  umockdev = disabler()
+endif
 libgio = dependency('gio-2.0', version : '>= 2.44.0')
 libusb = dependency('libusb-1.0', version : '>= 1.0.9')
 if cc.has_header_symbol('libusb.h', 'LIBUSB_CAP_HAS_HOTPLUG', dependencies: libusb)
@@ -110,10 +116,12 @@ endif
 if cc.has_header_symbol('libusb.h', 'libusb_get_port_number', dependencies: libusb)
   conf.set('HAVE_LIBUSB_GET_PORT_NUMBER', '1')
 endif
+libjsonglib = dependency('json-glib-1.0', version: '>= 1.1.1')
 
 gusb_deps = [
   libgio,
   libusb,
+  libjsonglib,
 ]
 
 gnome = import('gnome')
@@ -122,6 +130,7 @@ add_project_arguments('-DGUSB_COMPILATION', language: 'c')
 
 prefix = get_option('prefix')
 bindir = join_paths(prefix, get_option('bindir'))
+datadir = join_paths(prefix, get_option('datadir'))
 
 configure_file(
   output : 'config.h',
@@ -132,4 +141,6 @@ root_incdir = include_directories('.')
 
 subdir('gusb')
 subdir('tools')
-subdir('docs')
+if get_option('docs')
+  subdir('docs')
+endif

@@ -1,2 +1,4 @@
 version=4
-https://people.freedesktop.org/~hughsient/releases/ libgusb-(.*)\.tar\.xz
+opts=searchmode=plain \
+https://api.github.com/repos/hughsie/@PACKAGE@/releases \
+https://github.com/hughsie/@PACKAGE@/releases/download/[\d.]*/@PACKAGE@@ANY_VERSION@@ARCHIVE_EXT@
