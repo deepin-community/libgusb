@@ -26,14 +26,16 @@ lib_incdir = include_directories('.')
 
 install_headers([
     gusb_version_h,
-    'gusb-autocleanups.h',
     'gusb-context.h',
     'gusb-context-private.h',
     'gusb-device.h',
+    'gusb-device-event.h',
     'gusb-device-private.h',
     'gusb-device-list.h',
     'gusb-interface.h',
     'gusb-interface-private.h',
+    'gusb-bos-descriptor.h',
+    'gusb-bos-descriptor-private.h',
     'gusb-endpoint.h',
     'gusb-endpoint-private.h',
     'gusb-source.h',
@@ -43,8 +45,10 @@ install_headers([
 )
 
 mapfile = 'libgusb.ver'
+mapfile_test = 'libgusb_meson.ver'
 vflag = []
-if host_machine.system() not in ['darwin']
+vflag_test = '-Wl,--version-script,@0@/@1@'.format(meson.current_source_dir(), mapfile_test)
+if cc.has_link_argument(vflag_test)
   vflag += '-Wl,--version-script,@0@/@1@'.format(meson.current_source_dir(), mapfile)
 endif
 gusb = library(
@@ -52,12 +56,15 @@ gusb = library(
   sources : [
     'gusb-context.c',
     'gusb-device.c',
+    'gusb-device-event.c',
     'gusb-device-list.c',
     'gusb-interface.c',
+    'gusb-bos-descriptor.c',
     'gusb-endpoint.c',
     'gusb-source.c',
     'gusb-util.c',
     'gusb-version.c',
+    'gusb-json-common.c',
   ],
   soversion : lt_current,
   version : lt_version,
@@ -65,6 +72,7 @@ gusb = library(
   dependencies : [
     libgio,
     libusb,
+    libjsonglib,
   ],
   c_args : [
       cargs,
@@ -89,7 +97,7 @@ gusb_dep = declare_dependency(
 
 pkgg = import('pkgconfig')
 pkgg.generate(gusb,
-  requires : [ 'gio-2.0', 'gobject-2.0', 'libusb-1.0' ],
+  requires : [ 'gio-2.0', 'gobject-2.0', 'libusb-1.0', 'json-glib-1.0' ],
   subdirs : 'gusb-1',
   version : meson.project_version(),
   name : 'gusb',
@@ -101,18 +109,23 @@ if get_option('introspection')
 libgusb_girtarget = gnome.generate_gir(gusb,
   sources : [
     gusb_version_h,
-    'gusb-autocleanups.h',
     'gusb-context.c',
     'gusb-context.h',
     'gusb-context-private.h',
     'gusb-device.c',
     'gusb-device.h',
+    'gusb-device-event.c',
+    'gusb-device-event.h',
+    'gusb-device-event-private.h',
     'gusb-device-list.c',
     'gusb-device-list.h',
     'gusb-device-private.h',
     'gusb-interface.c',
     'gusb-interface.h',
     'gusb-interface-private.h',
+    'gusb-bos-descriptor.c',
+    'gusb-bos-descriptor.h',
+    'gusb-bos-descriptor-private.h',
     'gusb-endpoint.c',
     'gusb-endpoint.h',
     'gusb-endpoint-private.h',
@@ -135,10 +148,12 @@ libgusb_girtarget = gnome.generate_gir(gusb,
   dependencies : [
     libgio,
     libusb,
+    libjsonglib,
   ],
   includes : [
     'Gio-2.0',
     'GObject-2.0',
+    'Json-1.0',
   ],
   install : true
 )
@@ -161,7 +176,7 @@ mapfile_target = custom_target('gusb_mapfile',
   output: 'libgusb.ver',
   command: [
     py_installation,
-    join_paths(meson.source_root(), 'contrib', 'generate-version-script.py'),
+    join_paths(meson.project_source_root(), 'contrib', 'generate-version-script.py'),
     'LIBGUSB',
     '@INPUT@',
     '@OUTPUT@',
@@ -181,7 +196,7 @@ endif
 if get_option('vapi')
 gnome.generate_vapi('gusb',
   sources: libgusb_girtarget[0],
-  packages: ['gio-2.0'],
+  packages: ['gio-2.0', 'json-glib-1.0'],
   install: true,
 )
 endif
@@ -192,12 +207,15 @@ if get_option('tests')
     sources : [
       'gusb-context.c',
       'gusb-device.c',
+      'gusb-device-event.c',
       'gusb-device-list.c',
       'gusb-interface.c',
+      'gusb-bos-descriptor.c',
       'gusb-endpoint.c',
       'gusb-self-test.c',
       'gusb-source.c',
       'gusb-util.c',
+      'gusb-json-common.c'
     ],
     include_directories : [
       root_incdir,
@@ -206,10 +224,24 @@ if get_option('tests')
     dependencies : [
       libgio,
       libusb,
+      libjsonglib,
     ],
     c_args : [
       cargs,
     ],
   )
   test('gusb-self-test', e)
+
+  # Umockdev based tests
+  test_env = environment()
+  test_env.prepend('LD_PRELOAD', 'libumockdev-preload.so.0')
+
+  test_umockdev = executable(
+      'gusb-umockdev-test',
+      'gusb-umockdev-test.c',
+      dependencies: [ umockdev, gusb_dep ])
+
+  test('gusb-umockdev-test',
+      test_umockdev,
+      env: test_env)
 endif

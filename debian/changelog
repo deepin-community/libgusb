@@ -1,3 +1,62 @@
+libgusb (0.4.8-1) unstable; urgency=medium
+
+  [ Jeremy Bícha ]
+  * New upstream release
+  * Add myself to Uploaders
+  * Point debian/watch to GitHub releases (Closes: #1051728)
+  * Point Homepage to GitHub (Closes: #1051727)
+  * Add dh-sequence-gir to Build-Depends
+  * Use debian/docs to install NEWS
+  * List libgusb2 first in debian/control so that debian/docs works for it
+  * Enable all hardening flags
+  * Set DPKG_GENSYMBOLS_CHECK_LEVEL to 4
+  * debian/libgusb2.symbols: Add new symbols
+  * Set Rules-Requires-Root: no
+  * Run wrap-and-sort
+  * Update debian/copyright
+
+  [ Simon McVittie ]
+  * Add a superficial autopkgtest for libgusb-dev
+  * d/control: Add missing dependency libgusb-dev -> libjson-glib-dev
+    (Closes: #1032183)
+
+  [ Debian Janitor ]
+  * Update standards version to 4.6.2, no changes needed
+  * Remove constraints unnecessary since buster (oldstable):
+    + Build-Depends: Drop versioned constraint on libglib2.0-dev and valac.
+    + libgusb-dev: Drop versioned constraint on libglib2.0-dev in Depends.
+
+ -- Jeremy Bícha <jbicha@ubuntu.com>  Wed, 31 Jan 2024 20:42:58 -0500
+
+libgusb (0.4.5-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload
+
+  [ Simon McVittie ]
+  * Add a superficial autopkgtest for libgusb-dev
+  * d/control: Add missing dependency libgusb-dev -> libjson-glib-dev
+    (Closes: #1032183)
+
+  [ Laurent Bigonville ]
+  * Add missing debian/changelog entry
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Wed, 12 Apr 2023 10:16:00 -0400
+
+libgusb (0.4.5-1) unstable; urgency=medium
+
+  * New upstream version (0.4.5)
+  * Add libjson-glib-dev to b-d.
+  * Add gi-docgen instead of gtk-doc-tools to b-d.
+
+ -- Mario Limonciello <superm1@gmail.com>  Sun, 26 Feb 2023 20:02:45 -0600
+
+libgusb (0.3.10-1) unstable; urgency=medium
+
+  * New upstream version (0.3.10)
+    - Fixes hangs on cleanup introduced in 0.3.8. (LP: #1960768)
+
+ -- Mario Limonciello <superm1@gmail.com>  Mon, 14 Feb 2022 10:37:07 -0600
+
 libgusb (0.3.8-1) unstable; urgency=medium
 
   [ Debian Janitor ]

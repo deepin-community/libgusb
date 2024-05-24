@@ -1,0 +1,4 @@
+Tests: libgusb-dev
+Restrictions: allow-stderr, superficial
+Depends: build-essential,
+         libgusb-dev

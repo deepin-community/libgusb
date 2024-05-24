@@ -1,31 +1,50 @@
 Source: libgusb
 Maintainer: Debian UEFI Maintainers <debian-efi@lists.debian.org>
-Uploaders: Steve McIntyre <93sam@debian.org>, Mario Limonciello <mario.limonciello@dell.com>
+Uploaders: Jeremy Bícha <jbicha@ubuntu.com>,
+           Steve McIntyre <93sam@debian.org>,
+           Mario Limonciello <mario.limonciello@dell.com>
 Section: libs
 Priority: optional
 Build-Depends: debhelper-compat (= 13),
-               libglib2.0-dev (>= 2.44.0),
-               libusb-1.0-0-dev,
-               gobject-introspection,
+               dh-sequence-gir,
+               gi-docgen,
                libgirepository1.0-dev,
-               gtk-doc-tools,
-               valac (>= 0.20),
-               meson
+               libglib2.0-dev,
+               libjson-glib-dev,
+               libusb-1.0-0-dev,
+               meson,
+               valac
 Build-Depends-Indep: libglib2.0-doc <!nodoc>
-Standards-Version: 4.5.1
-Homepage: http://www.hughski.com/downloads.html
+Rules-Requires-Root: no
+Standards-Version: 4.6.2
+Homepage: https://github.com/hughsie/libgusb
 Vcs-Git: https://salsa.debian.org/efi-team/libgusb.git
 Vcs-Browser: https://salsa.debian.org/efi-team/libgusb
+
+Package: libgusb2
+Architecture: any
+Multi-Arch: same
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: usb.ids
+Pre-Depends: ${misc:Pre-Depends}
+Description: GLib wrapper around libusb1
+ GUsb is a GObject wrapper for libusb1 that makes it easy to do
+ asynchronous control, bulk and interrupt transfers with proper
+ cancellation and integration into a mainloop.
+ .
+ This package contains the GUsb shared library.
 
 Package: libgusb-dev
 Architecture: any
 Section: libdevel
-Depends: libgusb2 (= ${binary:Version}),
-         ${shlibs:Depends},
+Depends: gir1.2-gusb-1.0 (= ${binary:Version}),
+         libglib2.0-dev,
+         libgusb2 (= ${binary:Version}),
+         libjson-glib-dev,
+         libusb-1.0-0-dev,
          ${misc:Depends},
-         gir1.2-gusb-1.0 (= ${binary:Version}),
-         libglib2.0-dev (>= 2.44.0),
-         libusb-1.0-0-dev
+         ${shlibs:Depends}
 Description: GLib wrapper around libusb1 - development files
  GUsb is a GObject wrapper for libusb1 that makes it easy to do
  asynchronous control, bulk and interrupt transfers with proper
@@ -48,26 +67,12 @@ Description: GLib wrapper around libusb1 - documentation
  .
  This package contains the documentation.
 
-Package: libgusb2
-Architecture: any
-Multi-Arch: same
-Depends: ${shlibs:Depends},
-         ${misc:Depends}
-Recommends: usb.ids
-Pre-Depends: ${misc:Pre-Depends}
-Description: GLib wrapper around libusb1
- GUsb is a GObject wrapper for libusb1 that makes it easy to do
- asynchronous control, bulk and interrupt transfers with proper
- cancellation and integration into a mainloop.
- .
- This package contains the GUsb shared library.
-
 Package: gir1.2-gusb-1.0
 Architecture: any
 Section: introspection
 Multi-Arch: same
-Depends: ${misc:Depends},
-         ${gir:Depends}
+Depends: ${gir:Depends},
+         ${misc:Depends}
 Description: GObject introspection data for libgusb
  This package contains the introspection data for GUsb.
  .

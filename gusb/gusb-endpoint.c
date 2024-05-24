@@ -19,40 +19,126 @@
 
 #include <string.h>
 
-#include "gusb-endpoint.h"
 #include "gusb-endpoint-private.h"
+#include "gusb-json-common.h"
 
-struct _GUsbEndpoint
-{
+struct _GUsbEndpoint {
 	GObject parent_instance;
 
 	struct libusb_endpoint_descriptor endpoint_descriptor;
 	GBytes *extra;
 };
 
-G_DEFINE_TYPE (GUsbEndpoint, g_usb_endpoint, G_TYPE_OBJECT)
+G_DEFINE_TYPE(GUsbEndpoint, g_usb_endpoint, G_TYPE_OBJECT)
 
 static void
-g_usb_endpoint_finalize (GObject *object)
+g_usb_endpoint_finalize(GObject *object)
 {
-	GUsbEndpoint *endpoint = G_USB_ENDPOINT (object);
+	GUsbEndpoint *self = G_USB_ENDPOINT(object);
 
-	g_bytes_unref (endpoint->extra);
+	g_bytes_unref(self->extra);
 
-	G_OBJECT_CLASS (g_usb_endpoint_parent_class)->finalize (object);
+	G_OBJECT_CLASS(g_usb_endpoint_parent_class)->finalize(object);
 }
 
 static void
-g_usb_endpoint_class_init (GUsbEndpointClass *klass)
+g_usb_endpoint_class_init(GUsbEndpointClass *klass)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	GObjectClass *object_class = G_OBJECT_CLASS(klass);
 
 	object_class->finalize = g_usb_endpoint_finalize;
 }
 
 static void
-g_usb_endpoint_init (GUsbEndpoint *endpoint)
+g_usb_endpoint_init(GUsbEndpoint *self)
 {
+}
+
+gboolean
+_g_usb_endpoint_load(GUsbEndpoint *self, JsonObject *json_object, GError **error)
+{
+	const gchar *str;
+
+	g_return_val_if_fail(G_USB_IS_ENDPOINT(self), FALSE);
+	g_return_val_if_fail(json_object != NULL, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	/* optional properties */
+	self->endpoint_descriptor.bDescriptorType =
+	    json_object_get_int_member_with_default(json_object, "DescriptorType", 0x0);
+	self->endpoint_descriptor.bEndpointAddress =
+	    json_object_get_int_member_with_default(json_object, "EndpointAddress", 0x0);
+	self->endpoint_descriptor.bRefresh =
+	    json_object_get_int_member_with_default(json_object, "Refresh", 0x0);
+	self->endpoint_descriptor.bInterval =
+	    json_object_get_int_member_with_default(json_object, "Interval", 0x0);
+	self->endpoint_descriptor.bSynchAddress =
+	    json_object_get_int_member_with_default(json_object, "SynchAddress", 0x0);
+	self->endpoint_descriptor.wMaxPacketSize =
+	    json_object_get_int_member_with_default(json_object, "MaxPacketSize", 0x0);
+
+	/* extra data */
+	str = json_object_get_string_member_with_default(json_object, "ExtraData", NULL);
+	if (str != NULL) {
+		gsize bufsz = 0;
+		g_autofree guchar *buf = g_base64_decode(str, &bufsz);
+		if (self->extra != NULL)
+			g_bytes_unref(self->extra);
+		self->extra = g_bytes_new_take(g_steal_pointer(&buf), bufsz);
+	}
+
+	/* success */
+	return TRUE;
+}
+
+gboolean
+_g_usb_endpoint_save(GUsbEndpoint *self, JsonBuilder *json_builder, GError **error)
+{
+	g_return_val_if_fail(G_USB_IS_ENDPOINT(self), FALSE);
+	g_return_val_if_fail(json_builder != NULL, FALSE);
+	g_return_val_if_fail(error == NULL || *error == NULL, FALSE);
+
+	/* start */
+	json_builder_begin_object(json_builder);
+
+	/* optional properties */
+	if (self->endpoint_descriptor.bDescriptorType != 0) {
+		json_builder_set_member_name(json_builder, "DescriptorType");
+		json_builder_add_int_value(json_builder, self->endpoint_descriptor.bDescriptorType);
+	}
+	if (self->endpoint_descriptor.bEndpointAddress != 0) {
+		json_builder_set_member_name(json_builder, "EndpointAddress");
+		json_builder_add_int_value(json_builder,
+					   self->endpoint_descriptor.bEndpointAddress);
+	}
+	if (self->endpoint_descriptor.bRefresh != 0) {
+		json_builder_set_member_name(json_builder, "Refresh");
+		json_builder_add_int_value(json_builder, self->endpoint_descriptor.bRefresh);
+	}
+	if (self->endpoint_descriptor.bInterval != 0) {
+		json_builder_set_member_name(json_builder, "Interval");
+		json_builder_add_int_value(json_builder, self->endpoint_descriptor.bInterval);
+	}
+	if (self->endpoint_descriptor.bSynchAddress != 0) {
+		json_builder_set_member_name(json_builder, "SynchAddress");
+		json_builder_add_int_value(json_builder, self->endpoint_descriptor.bSynchAddress);
+	}
+	if (self->endpoint_descriptor.wMaxPacketSize != 0) {
+		json_builder_set_member_name(json_builder, "MaxPacketSize");
+		json_builder_add_int_value(json_builder, self->endpoint_descriptor.wMaxPacketSize);
+	}
+
+	/* extra data */
+	if (self->extra != NULL && g_bytes_get_size(self->extra) > 0) {
+		g_autofree gchar *str = g_base64_encode(g_bytes_get_data(self->extra, NULL),
+							g_bytes_get_size(self->extra));
+		json_builder_set_member_name(json_builder, "ExtraData");
+		json_builder_add_string_value(json_builder, str);
+	}
+
+	/* success */
+	json_builder_end_object(json_builder);
+	return TRUE;
 }
 
 /**
@@ -63,23 +149,23 @@ g_usb_endpoint_init (GUsbEndpoint *endpoint)
  * Since: 0.3.3
  **/
 GUsbEndpoint *
-_g_usb_endpoint_new (const struct libusb_endpoint_descriptor *endpoint_descriptor)
+_g_usb_endpoint_new(const struct libusb_endpoint_descriptor *endpoint_descriptor)
 {
-	GUsbEndpoint *endpoint;
-	endpoint = g_object_new (G_USB_TYPE_ENDPOINT, NULL);
+	GUsbEndpoint *self;
+	self = g_object_new(G_USB_TYPE_ENDPOINT, NULL);
 
 	/* copy the data */
-	memcpy (&endpoint->endpoint_descriptor,
-		endpoint_descriptor,
-		sizeof (struct libusb_endpoint_descriptor));
-	endpoint->extra = g_bytes_new (endpoint_descriptor->extra, endpoint_descriptor->extra_length);
+	memcpy(&self->endpoint_descriptor,
+	       endpoint_descriptor,
+	       sizeof(struct libusb_endpoint_descriptor));
+	self->extra = g_bytes_new(endpoint_descriptor->extra, endpoint_descriptor->extra_length);
 
-	return G_USB_ENDPOINT (endpoint);
+	return G_USB_ENDPOINT(self);
 }
 
 /**
  * g_usb_endpoint_get_kind:
- * @endpoint: a #GUsbEndpoint
+ * @self: a #GUsbEndpoint
  *
  * Gets the type of endpoint.
  *
@@ -88,15 +174,15 @@ _g_usb_endpoint_new (const struct libusb_endpoint_descriptor *endpoint_descripto
  * Since: 0.3.3
  **/
 guint8
-g_usb_endpoint_get_kind	(GUsbEndpoint *endpoint)
+g_usb_endpoint_get_kind(GUsbEndpoint *self)
 {
-	g_return_val_if_fail (G_USB_IS_ENDPOINT (endpoint), 0);
-	return endpoint->endpoint_descriptor.bDescriptorType;
+	g_return_val_if_fail(G_USB_IS_ENDPOINT(self), 0);
+	return self->endpoint_descriptor.bDescriptorType;
 }
 
 /**
  * g_usb_endpoint_get_maximum_packet_size:
- * @endpoint: a #GUsbEndpoint
+ * @self: a #GUsbEndpoint
  *
  * Gets the maximum packet size this endpoint is capable of sending/receiving.
  *
@@ -105,15 +191,15 @@ g_usb_endpoint_get_kind	(GUsbEndpoint *endpoint)
  * Since: 0.3.3
  **/
 guint16
-g_usb_endpoint_get_maximum_packet_size (GUsbEndpoint *endpoint)
+g_usb_endpoint_get_maximum_packet_size(GUsbEndpoint *self)
 {
-	g_return_val_if_fail (G_USB_IS_ENDPOINT (endpoint), 0);
-	return endpoint->endpoint_descriptor.wMaxPacketSize;
+	g_return_val_if_fail(G_USB_IS_ENDPOINT(self), 0);
+	return self->endpoint_descriptor.wMaxPacketSize;
 }
 
 /**
  * g_usb_endpoint_get_polling_interval:
- * @endpoint: a #GUsbEndpoint
+ * @self: a #GUsbEndpoint
  *
  * Gets the endpoint polling interval.
  *
@@ -122,15 +208,15 @@ g_usb_endpoint_get_maximum_packet_size (GUsbEndpoint *endpoint)
  * Since: 0.3.3
  **/
 guint8
-g_usb_endpoint_get_polling_interval (GUsbEndpoint *endpoint)
+g_usb_endpoint_get_polling_interval(GUsbEndpoint *self)
 {
-	g_return_val_if_fail (G_USB_IS_ENDPOINT (endpoint), 0);
-	return endpoint->endpoint_descriptor.bInterval;
+	g_return_val_if_fail(G_USB_IS_ENDPOINT(self), 0);
+	return self->endpoint_descriptor.bInterval;
 }
 
 /**
  * g_usb_endpoint_get_refresh:
- * @endpoint: a #GUsbEndpoint
+ * @self: a #GUsbEndpoint
  *
  * Gets the rate at which synchronization feedback is provided, for audio device only.
  *
@@ -139,15 +225,15 @@ g_usb_endpoint_get_polling_interval (GUsbEndpoint *endpoint)
  * Since: 0.3.3
  **/
 guint8
-g_usb_endpoint_get_refresh (GUsbEndpoint *endpoint)
+g_usb_endpoint_get_refresh(GUsbEndpoint *self)
 {
-	g_return_val_if_fail (G_USB_IS_ENDPOINT (endpoint), 0);
-	return endpoint->endpoint_descriptor.bRefresh;
+	g_return_val_if_fail(G_USB_IS_ENDPOINT(self), 0);
+	return self->endpoint_descriptor.bRefresh;
 }
 
 /**
  * g_usb_endpoint_get_synch_address:
- * @endpoint: a #GUsbEndpoint
+ * @self: a #GUsbEndpoint
  *
  * Gets the address if the synch endpoint, for audio device only.
  *
@@ -156,15 +242,15 @@ g_usb_endpoint_get_refresh (GUsbEndpoint *endpoint)
  * Since: 0.3.3
  **/
 guint8
-g_usb_endpoint_get_synch_address (GUsbEndpoint *endpoint)
+g_usb_endpoint_get_synch_address(GUsbEndpoint *self)
 {
-	g_return_val_if_fail (G_USB_IS_ENDPOINT (endpoint), 0);
-	return endpoint->endpoint_descriptor.bSynchAddress;
+	g_return_val_if_fail(G_USB_IS_ENDPOINT(self), 0);
+	return self->endpoint_descriptor.bSynchAddress;
 }
 
 /**
  * g_usb_endpoint_get_address:
- * @endpoint: a #GUsbEndpoint
+ * @self: a #GUsbEndpoint
  *
  * Gets the address of the endpoint.
  *
@@ -173,15 +259,15 @@ g_usb_endpoint_get_synch_address (GUsbEndpoint *endpoint)
  * Since: 0.3.3
  **/
 guint8
-g_usb_endpoint_get_address (GUsbEndpoint *endpoint)
+g_usb_endpoint_get_address(GUsbEndpoint *self)
 {
-	g_return_val_if_fail (G_USB_IS_ENDPOINT (endpoint), 0);
-	return endpoint->endpoint_descriptor.bEndpointAddress;
+	g_return_val_if_fail(G_USB_IS_ENDPOINT(self), 0);
+	return self->endpoint_descriptor.bEndpointAddress;
 }
 
 /**
  * g_usb_endpoint_get_number:
- * @endpoint: a #GUsbEndpoint
+ * @self: a #GUsbEndpoint
  *
  * Gets the number part of endpoint address.
  *
@@ -190,15 +276,15 @@ g_usb_endpoint_get_address (GUsbEndpoint *endpoint)
  * Since: 0.3.3
  **/
 guint8
-g_usb_endpoint_get_number (GUsbEndpoint *endpoint)
+g_usb_endpoint_get_number(GUsbEndpoint *self)
 {
-	g_return_val_if_fail (G_USB_IS_ENDPOINT (endpoint), 0);
-	return (endpoint->endpoint_descriptor.bEndpointAddress) & 0xf;
+	g_return_val_if_fail(G_USB_IS_ENDPOINT(self), 0);
+	return (self->endpoint_descriptor.bEndpointAddress) & 0xf;
 }
 
 /**
  * g_usb_endpoint_get_direction:
- * @endpoint: a #GUsbEndpoint
+ * @self: a #GUsbEndpoint
  *
  * Gets the direction of the endpoint.
  *
@@ -207,17 +293,17 @@ g_usb_endpoint_get_number (GUsbEndpoint *endpoint)
  * Since: 0.3.3
  **/
 GUsbDeviceDirection
-g_usb_endpoint_get_direction (GUsbEndpoint *endpoint)
+g_usb_endpoint_get_direction(GUsbEndpoint *self)
 {
-	g_return_val_if_fail (G_USB_IS_ENDPOINT (endpoint), 0);
-	return (endpoint->endpoint_descriptor.bEndpointAddress & 0x80) ?
-		G_USB_DEVICE_DIRECTION_DEVICE_TO_HOST :
-		G_USB_DEVICE_DIRECTION_HOST_TO_DEVICE;
+	g_return_val_if_fail(G_USB_IS_ENDPOINT(self), 0);
+	return (self->endpoint_descriptor.bEndpointAddress & 0x80)
+		   ? G_USB_DEVICE_DIRECTION_DEVICE_TO_HOST
+		   : G_USB_DEVICE_DIRECTION_HOST_TO_DEVICE;
 }
 
 /**
  * g_usb_endpoint_get_extra:
- * @endpoint: a #GUsbEndpoint
+ * @self: a #GUsbEndpoint
  *
  * Gets any extra data from the endpoint.
  *
@@ -226,8 +312,8 @@ g_usb_endpoint_get_direction (GUsbEndpoint *endpoint)
  * Since: 0.3.3
  **/
 GBytes *
-g_usb_endpoint_get_extra (GUsbEndpoint *endpoint)
+g_usb_endpoint_get_extra(GUsbEndpoint *self)
 {
-	g_return_val_if_fail (G_USB_IS_ENDPOINT (endpoint), NULL);
-	return endpoint->extra;
+	g_return_val_if_fail(G_USB_IS_ENDPOINT(self), NULL);
+	return self->extra;
 }

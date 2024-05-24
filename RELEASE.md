@@ -1,37 +1,23 @@
 GUsb Release Notes
 ==================
 
-Write `NEWS` entries for GUsb in the same format as usual.
-
-    git shortlog 0.3.7.. | grep -i -v trivial | grep -v Merge > NEWS.new
-    =================================================
-    Version 0.3.8
-    ~~~~~~~~~~~~~
-    Released: 2021-xx-xx
-
-    Notes:
-
-    New Features:
-
-    Bugfixes:
-    =================================================
+git log --format="%s" --cherry-pick --right-only 0.4.7... | grep -i -v trivial | grep -v Merge | sort | uniq
+Add any user visible changes into ../contrib/org.freedesktop.GUsb.metainfo.xml
+appstream-util appdata-to-news ../contrib/org.freedesktop.GUsb.metainfo.xml > ../NEWS
 
 Update library version if new ABI or API in `meson.build`, commit, and build tarball:
 
     # MAKE SURE THIS IS CORRECT
-    export release_ver="0.3.8"
+    export release_ver="0.4.8"
 
     git commit -a -m "Release version ${release_ver}"
     git tag -s -f -m "Release ${release_ver}" "${release_ver}"
-    <gpg password>
     ninja dist
     git push --tags
     git push
     gpg -b -a meson-dist/libgusb-${release_ver}.tar.xz
 
-Upload tarball:
-
-    scp meson-dist/libgusb-${release_ver}.tar.* hughsient@people.freedesktop.org:public_html/releases/
+Upload tarball and GPG signatures to https://github.com/hughsie/libgusb
 
 Do post release version bump in `meson.build` and commit changes:
 
@@ -41,11 +27,11 @@ Do post release version bump in `meson.build` and commit changes:
 Send an email to devkit-devel@lists.freedesktop.org
 
     =================================================
-    GUsb 0.3.8 released!
+    GUsb 0.4.7 released
 
     GUsb is a GObject wrapper for libusb1 that makes it easy to do
     asynchronous control, bulk and interrupt transfers with proper
     cancellation and integration into a mainloop.
 
-    Tarballs available here: http://people.freedesktop.org/~hughsient/releases/
+    Tarballs available here: https://github.com/hughsie/libgusb/releases
     =================================================
