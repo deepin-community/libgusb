@@ -1,3 +1,11 @@
+libgusb (0.4.9-1) unstable; urgency=medium
+
+  * New upstream release
+  * Add debian/upstream/metadata
+  * Bump Standards Version to 4.7.0
+
+ -- Jeremy Bícha <jbicha@ubuntu.com>  Mon, 03 Jun 2024 20:05:20 -0400
+
 libgusb (0.4.8-1) unstable; urgency=medium
 
   [ Jeremy Bícha ]
