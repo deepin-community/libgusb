@@ -1,5 +1,5 @@
 project('libgusb', 'c',
-  version : '0.4.8',
+  version : '0.4.9',
   license : 'LGPL-2.1+',
   meson_version : '>=0.56.0',
   default_options : ['c_std=c99']
@@ -123,6 +123,10 @@ gusb_deps = [
   libusb,
   libjsonglib,
 ]
+
+if not get_option('introspection') and get_option('vapi')
+  error('-Dvapi=true requires -Dintrospection=true')
+endif
 
 gnome = import('gnome')
 
